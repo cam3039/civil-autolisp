@@ -1,0 +1,14 @@
+File Loading Dependencies (Based on `(load "...")` statements):
+
+_PersonalLibrary.lsp loads:
+  - lsc2vld (conditionally)
+  - 3dpladvx (conditionally)
+  - 3doffset (conditionally)
+  - revcurve3d (conditionally)
+  - pmdsdes (conditionally)
+
+Dump folder/Deploy.lsp loads:
+  - 0 - Reload_LISP_library.lsp
+
+DRAINAGE - Create manhole schedule.lsp loads:
+  - SortAlphanumeric.lsp

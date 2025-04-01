@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civil AutoLISP Command Help</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body { padding-top: 56px; } /* Adjust body padding for fixed navbar */
+        .command-section { display: none; } /* Hide all sections by default */
+        .command-section.active { display: block; } /* Show active section */
+        .sidebar { height: calc(100vh - 56px); overflow-y: auto; }
+        .variable-table th { width: 20%; }
+        .variable-table td { word-break: break-word; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Civil AutoLISP Help</a>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Commands</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link command-link" href="#cmd-atl" data-target="cmd-atl">C:ATL</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link command-link" href="#cmd-datumkick" data-target="cmd-datumkick">C:datumkick</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link command-link" href="#cmd-hs" data-target="cmd-hs">C:HS</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link command-link" href="#cmd-pld" data-target="cmd-pld">C:PLD</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link command-link" href="#cmd-ptl" data-target="cmd-ptl">C:PTL</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link command-link" href="#cmd-rdl" data-target="cmd-rdl">C:RDL</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Command Details</h1>
+                </div>
+
+                <!-- Command Sections -->
+                <div id="cmd-atl" class="command-section">
+                    <h2>C:ATL</h2>
+                    <p><strong>File:</strong> <code>CIVIL - Add to level.lsp</code></p>
+                    <p><strong>Description:</strong> Adds a user-specified increment to the numerical value of a selected text entity representing a level.</p>
+
+                    <h5>Inputs</h5>
+                    <table class="table table-sm table-bordered variable-table">
+                        <thead><tr><th>Type</th><th>Name/Prompt</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td>User Prompt</td><td><code>Introduce the increment <...>:</code></td><td>Asks the user to enter a real number increment. Remembers the previous increment (<code>prev_increment</code>) as a default.</td></tr>
+                            <tr><td>User Selection</td><td><code>Select level text:</code></td><td>Asks the user to select a single TEXT entity.</td></tr>
+                            <tr><td>Local Variable</td><td><code>*error*</code></td><td>Custom error handling function. Resets OSMODE and CMDECHO on error or cancel.</td></tr>
+                            <tr><td>Local Variable</td><td><code>oldosmode</code></td><td>Stores the original OSMODE setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>oldcmdecho</code></td><td>Stores the original CMDECHO setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>msg</code></td><td>Stores the prompt string for the increment input.</td></tr>
+                            <tr><td>Local Variable</td><td><code>increment</code></td><td>Stores the increment value entered by the user (real number).</td></tr>
+                            <tr><td>Local Variable</td><td><code>entList</code></td><td>Stores the entity data list of the selected text object.</td></tr>
+                            <tr><td>Local Variable</td><td><code>txt_level</code></td><td>Stores the string content of the selected text object, later modified to hold the new level string.</td></tr>
+                            <tr><td>Local Variable</td><td><code>level</code></td><td>Stores the numerical level value extracted from the text, later updated with the increment.</td></tr>
+                            <tr><td>Global Variable (Implicit)</td><td><code>prev_increment</code></td><td>Stores the last used increment value across command calls (initialized to 0.0 if nil).</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h5>Processing</h5>
+                    <ol>
+                        <li>Saves current OSMODE and CMDECHO, then sets them to 0.</li>
+                        <li>Prompts the user for a numerical increment, using the previously entered value (if any) as a default. Stores the entered value or default in <code>increment</code> and updates <code>prev_increment</code>.</li>
+                        <li>Prompts the user to select a text entity.</li>
+                        <li>Extracts the text string content (DXF code 1) from the selected entity.</li>
+                        <li>Assumes the level value starts after the first 3 characters (e.g., after "%%U"), extracts this substring.</li>
+                        <li>Converts the extracted substring to a real number (<code>level</code>).</li>
+                        <li>Adds the user-provided <code>increment</code> to the <code>level</code>.</li>
+                        <li>Formats the new level back into a string prefixed with "%%U" and rounded to 3 decimal places.</li>
+                        <li>Updates the selected text entity's content (DXF code 1) with the new level string using <code>entmod</code>.</li>
+                        <li>Restores original OSMODE and CMDECHO.</li>
+                    </ol>
+
+                    <h5>Outputs</h5>
+                    <ul>
+                        <li>Modifies the content of the selected TEXT entity to reflect the incremented level value, formatted as "%%U" followed by the number (e.g., "%%U123.789").</li>
+                        <li>Returns <code>nil</code> (suppressed by <code>(princ)</code>).</li>
+                    </ul>
+                </div>
+
+                <div id="cmd-datumkick" class="command-section">
+                    <h2>C:datumkick</h2>
+                    <p><strong>File:</strong> <code>CIVIL - Datum kick.lsp</code></p>
+                    <p><strong>Description:</strong> Copies a selected object vertically based on the difference between a level extracted from a text object and a datum, applying vertical exaggeration.</p>
+
+                    <h5>Inputs</h5>
+                    <table class="table table-sm table-bordered variable-table">
+                         <thead><tr><th>Type</th><th>Name/Prompt</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td>User Prompt</td><td><code>Update datum (...) or exageration (...) [Yes/No] <No>:</code></td><td>Asks if the user wants to change the default datum (50) or exaggeration (10).</td></tr>
+                            <tr><td>User Prompt (Conditional)</td><td><code>Introduce datum level <...>:</code></td><td>If 'Yes' above, asks for a new datum level (real number).</td></tr>
+                            <tr><td>User Prompt (Conditional)</td><td><code>Introduce exageration <...>:</code></td><td>If 'Yes' above, asks for a new exaggeration factor (real number).</td></tr>
+                            <tr><td>User Selection</td><td><code>Select text to extract level:</code></td><td>Asks the user to select a single TEXT entity containing the level.</td></tr>
+                            <tr><td>User Selection</td><td><code>Select object to copy:</code></td><td>Asks the user to select a single entity to be copied vertically.</td></tr>
+                            <tr><td>Local Variable</td><td><code>*error*</code></td><td>Custom error handling function. Resets OSMODE and CMDECHO.</td></tr>
+                            <tr><td>Local Variable</td><td><code>oldosmode</code></td><td>Stores the original OSMODE setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>oldcmdecho</code></td><td>Stores the original CMDECHO setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>txt_level</code></td><td>Stores the string content of the selected level text.</td></tr>
+                            <tr><td>Local Variable</td><td><code>level</code></td><td>Stores the numerical level extracted from <code>txt_level</code>.</td></tr>
+                            <tr><td>Local Variable</td><td><code>diff</code></td><td>Stores the calculated difference (level - datum), later multiplied by exaggeration.</td></tr>
+                            <tr><td>Local Variable</td><td><code>datum</code></td><td>Stores the datum level (initialized to 50, potentially updated by user).</td></tr>
+                            <tr><td>Local Variable</td><td><code>new_datum</code></td><td>Temporarily stores the user input for a new datum.</td></tr>
+                            <tr><td>Local Variable</td><td><code>exag</code></td><td>Stores the vertical exaggeration factor (initialized to 10, potentially updated by user).</td></tr>
+                            <tr><td>Local Variable</td><td><code>new_exag</code></td><td>Temporarily stores the user input for a new exaggeration factor.</td></tr>
+                            <tr><td>Local Variable</td><td><code>ans</code></td><td>Stores the 'Yes'/'No' answer for updating defaults.</td></tr>
+                            <tr><td>Local Variable</td><td><code>ent</code></td><td>Stores the entity name list returned by <code>entsel</code> for the level text.</td></tr>
+                            <tr><td>Local Variable</td><td><code>entList</code></td><td>Stores the entity data list for the level text.</td></tr>
+                            <tr><td>Local Variable</td><td><code>ss</code></td><td>Stores the entity name list returned by <code>entsel</code> for the object to copy.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h5>Processing</h5>
+                    <ol>
+                        <li>Saves current OSMODE and CMDECHO, then sets them to 0.</li>
+                        <li>Initializes <code>datum</code> to 50 and <code>exag</code> to 10.</li>
+                        <li>Asks the user if they want to update these defaults.</li>
+                        <li>If 'Yes', prompts for and updates <code>datum</code> and <code>exag</code>.</li>
+                        <li>Prompts the user to select a text entity containing the level.</li>
+                        <li>Extracts the text content and converts it to a real number (<code>level</code>).</li>
+                        <li>Calculates the difference: <code>diff = level - datum</code>.</li>
+                        <li>Prompts the user to select an object to copy.</li>
+                        <li>Prints the level, datum, and difference to the command line.</li>
+                        <li>Applies exaggeration: <code>diff = diff * exag</code>.</li>
+                        <li>Uses the <code>COPY</code> command to copy the selected object vertically by the calculated <code>diff</code> (from 0,0,0 to 0,diff,0 in relative coordinates).</li>
+                        <li>Restores original OSMODE and CMDECHO.</li>
+                    </ol>
+
+                    <h5>Outputs</h5>
+                    <ul>
+                        <li>Creates a new entity which is a copy of the selected object, displaced vertically by <code>(level - datum) * exaggeration</code>.</li>
+                        <li>Prints the level, datum, and calculated difference (before exaggeration) to the command line.</li>
+                        <li>Returns <code>nil</code> (suppressed by <code>(princ)</code>).</li>
+                    </ul>
+                </div>
+
+                <div id="cmd-hs" class="command-section">
+                    <h2>C:HS</h2>
+                    <p><strong>File:</strong> <code>CIVIL - House polylines.lsp</code></p>
+                    <p><strong>Description:</strong> Processes selected building perimeter polylines to create wall representations by offsetting and applying thickness, placing objects on specific layers.</p>
+
+                    <h5>Inputs</h5>
+                    <table class="table table-sm table-bordered variable-table">
+                         <thead><tr><th>Type</th><th>Name/Prompt</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td>User Selection</td><td><code>Select one or more building perimeter polylines...:</code></td><td>Asks the user to select one or more LWPOLYLINE or POLYLINE entities.</td></tr>
+                            <tr><td>User Prompt</td><td><code>Select building type [House/Garage] <House>:</code></td><td>Asks the user to choose the building type using keywords.</td></tr>
+                            <tr><td>Local Variable</td><td><code>*error*</code></td><td>Custom error handling function. Resets OSMODE, CMDECHO, and CLAYER.</td></tr>
+                            <tr><td>Local Variable</td><td><code>oldosmode</code></td><td>Stores the original OSMODE setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>oldcmdecho</code></td><td>Stores the original CMDECHO setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>oldclayer</code></td><td>Stores the original CLAYER setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>ss</code></td><td>Stores the selection set of polylines.</td></tr>
+                            <tr><td>Local Variable</td><td><code>ent_name</code></td><td>Stores the entity name of the current polyline being processed in the loop.</td></tr>
+                            <tr><td>Local Variable</td><td><code>VL_ent_name</code></td><td>Stores the VLA-object corresponding to <code>ent_name</code>.</td></tr>
+                            <tr><td>Local Variable</td><td><code>entList</code></td><td>Stores the entity data list of the current polyline.</td></tr>
+                            <tr><td>Local Variable</td><td><code>ans</code></td><td>Stores the user's choice of building type ("House" or "Garage").</td></tr>
+                            <tr><td>Local Variable</td><td><code>thickness</code></td><td>Stores the calculated wall thickness based on <code>ans</code> (0.302 or 0.215).</td></tr>
+                            <tr><td>Local Variable</td><td><code>dist</code></td><td>Stores the offset distance (half of <code>thickness</code>).</td></tr>
+                            <tr><td>Local Variable</td><td><code>a</code></td><td>Loop variable used with <code>foreach</code> to iterate through selection set details from <code>ssnamex</code>.</td></tr>
+                            <tr><td>Local Variable</td><td><code>kkkkk</code></td><td>Loop control variable (seems intended for an infinite loop, likely exited via Esc/error). Not explicitly set or modified, relying on error handling to exit.</td></tr>
+                            <tr><td>External Function Call</td><td><code>DT:InnerPoint</code></td><td>Assumed to be a custom function that calculates a point inside the polyline for the OFFSET command.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h5>Processing</h5>
+                    <ol>
+                        <li>Saves current OSMODE, CMDECHO, and CLAYER. Sets OSMODE and CMDECHO to 0.</li>
+                        <li>Ensures layers "e-work-block" and "e-set-out-house" exist, creating them if necessary (Color 7 - White).</li>
+                        <li>Enters a loop (intended to be infinite, likely exited via Esc/error).</li>
+                        <li>Prompts the user to select one or more polyline entities.</li>
+                        <li>Prompts the user to select the building type ("House" or "Garage"). Sets <code>thickness</code> and offset <code>dist</code> accordingly.</li>
+                        <li>Starts an Undo group.</li>
+                        <li>Iterates through each selected polyline:</li>
+                        <li>Gets the entity name and VLA-object.</li>
+                        <li>Closes the polyline if it's not already closed.</li>
+                        <li>Sets the polyline's constant width to 0 and color to ByLayer.</li>
+                        <li>Moves the polyline to the "e-set-out-house" layer.</li>
+                        <li>Creates a copy of the polyline.</li>
+                        <li>Moves the copied polyline to the "e-work-block" layer.</li>
+                        <li>Offsets the copied polyline inwards by <code>dist</code> (using <code>DT:InnerPoint</code> to specify the side). The source entity (original copy) is erased by the offset command setting.</li>
+                        <li>Sets the constant width of the newly created offset polyline (the innermost one) to <code>thickness</code>.</li>
+                        <li>Ends the loop iteration for the current polyline.</li>
+                        <li>Resets the OFFSET command's Erase setting to No.</li>
+                        <li>Ends the Undo group.</li>
+                        <li>Repeats the main loop.</li>
+                        <li>(On exit/error) Restores original OSMODE, CMDECHO, and CLAYER.</li>
+                    </ol>
+
+                    <h5>Outputs</h5>
+                    <ul>
+                        <li>For each selected polyline:
+                            <ul>
+                                <li>The original polyline is moved to layer "e-set-out-house", closed, and its width set to 0.</li>
+                                <li>A new polyline is created on layer "e-work-block" representing the inner wall face, offset inwards from the original, with a constant width set according to the chosen building type.</li>
+                            </ul>
+                       </li>
+                        <li>Creates layers "e-work-block" and "e-set-out-house" if they don't exist.</li>
+                        <li>Returns <code>nil</code> (suppressed by <code>(princ)</code>).</li>
+                    </ul>
+                </div>
+
+                <div id="cmd-pld" class="command-section">
+                    <h2>C:PLD</h2>
+                    <p><strong>File:</strong> <code>Dump folder/PLDIET.lsp</code></p>
+                    <p><strong>Description:</strong> Simplifies ("diets") lightweight polylines by removing vertices based on distance and angle criteria.</p>
+
+                    <h5>Inputs</h5>
+                    <table class="table table-sm table-bordered variable-table">
+                         <thead><tr><th>Type</th><th>Name/Prompt</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td>User Prompt</td><td><code>Maximum distance between non-collinear vertices to straighten <...>:</code></td><td>Asks for the maximum distance (real number or picked) between two non-adjacent vertices (v1, v3) for the intermediate vertex (v2) to be removed. Uses global <code>*distmax*</code> for default.</td></tr>
+                            <tr><td>User Prompt</td><td><code>Maximum change in direction to straighten <...>:</code></td><td>Asks for the maximum angle change (angle value or picked) between segments (v1-v2 and v2-v3) for the intermediate vertex (v2) to be removed. Uses global <code>*cidmax*</code> for default (15 deg if first run).</td></tr>
+                            <tr><td>User Prompt</td><td><code>Retain or Straighten arc segments [R/S] <...>:</code></td><td>Asks whether to keep arc segments ('Retain') or convert them to straight segments ('Straighten') before processing. Uses global <code>*arcstr*</code> for default ('S' if first run).</td></tr>
+                            <tr><td>User Selection</td><td><code>Select LWPolylines to put on a diet, or press Enter to select all:</code></td><td>Prompts user to select LWPOLYLINE entities, or processes all LWPOLYLINEs in the current space/tab if Enter is pressed.</td></tr>
+                            <tr><td>Local Variable</td><td><code>*error*</code></td><td>Custom error handling function. Resets UCS if changed, ends Undo block, resets CMDECHO.</td></tr>
+                            <tr><td>Local Variable</td><td><code>cmde</code></td><td>Stores the original CMDECHO setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>disttemp</code></td><td>Temporarily stores the result from <code>getdist</code>.</td></tr>
+                            <tr><td>Local Variable</td><td><code>cidtemp</code></td><td>Temporarily stores the result from <code>getangle</code>.</td></tr>
+                            <tr><td>Local Variable</td><td><code>arctemp</code></td><td>Temporarily stores the result from <code>getkword</code>.</td></tr>
+                            <tr><td>Local Variable</td><td><code>plinc</code></td><td>Index counter for iterating through the selection set <code>plsel</code>.</td></tr>
+                            <tr><td>Local Variable</td><td><code>plsel</code></td><td>Stores the selection set of polylines to process.</td></tr>
+                            <tr><td>Local Variable</td><td><code>pldata</code></td><td>Stores the entity data list of the current polyline being processed.</td></tr>
+                            <tr><td>Local Variable</td><td><code>ucschanged</code></td><td>Flag (T/nil) indicating if the UCS was temporarily changed to match the polyline's extrusion direction.</td></tr>
+                            <tr><td>Local Variable</td><td><code>front</code></td><td>Stores the entity data list codes before the vertex data (codes 10, 40, 41, 42).</td></tr>
+                            <tr><td>Local Variable</td><td><code>10to42</code></td><td>Stores only the vertex data codes (10, 40, 41, 42) from the polyline. Modified if arcs are straightened.</td></tr>
+                            <tr><td>Local Variable</td><td><code>vinc</code></td><td>Counter/index used for iterating through vertices. Initially holds vertex count, then used as index.</td></tr>
+                            <tr><td>Local Variable</td><td><code>verts</code></td><td>A list where each element is a sublist containing the four DXF codes (10, 40, 41, 42) for a single vertex. This list is modified by removing vertices.</td></tr>
+                            <tr><td>Local Variable</td><td><code>vert1</code>, <code>vert2</code>, <code>vert3</code></td><td>Store the coordinate lists (DXF code 10) of three consecutive vertices being analyzed.</td></tr>
+                            <tr><td>Local Variable</td><td><code>ang1</code>, <code>ang2</code></td><td>Store the angles of the segments (vert1-vert2) and (vert2-vert3).</td></tr>
+                            <tr><td>Local Variable</td><td><code>bulges</code></td><td>Stores a list of bulge factor DXF pairs (42 . value) if straightening arcs.</td></tr>
+                            <tr><td>Global Variable</td><td><code>*distmax*</code></td><td>Stores the maximum distance criterion across command calls.</td></tr>
+                            <tr><td>Global Variable</td><td><code>*cidmax*</code></td><td>Stores the maximum change in direction criterion across command calls.</td></tr>
+                            <tr><td>Global Variable</td><td><code>*arcstr*</code></td><td>Stores the arc handling choice ("Retain" or "Straighten") across command calls.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h5>Processing</h5>
+                    <ol>
+                        <li>Saves CMDECHO, sets it to 0. Starts an Undo group.</li>
+                        <li>Prompts for maximum distance, maximum angle change, and arc handling method, storing choices in global variables (<code>*distmax*</code>, <code>*cidmax*</code>, <code>*arcstr*</code>) for subsequent runs.</li>
+                        <li>Prompts user to select LWPolylines or selects all in current space/tab.</li>
+                        <li>Iterates through each selected polyline:</li>
+                        <li>Gets the polyline's entity data.</li>
+                        <li>If the polyline's extrusion direction is not parallel to the current UCS Z-axis, temporarily changes the UCS to match the object's plane for accurate 2D calculations and sets <code>ucschanged</code> flag.</li>
+                        <li>Separates the entity data into <code>front</code> (non-vertex data) and <code>10to42</code> (vertex data).</li>
+                        <li>If arc handling is "Straighten", finds all non-zero bulge factors (code 42) and replaces them with 0.0 in the <code>10to42</code> list.</li>
+                        <li>Converts the flat <code>10to42</code> list into a structured list <code>verts</code> where each item represents one vertex (list of 4 DXF pairs).</li>
+                        <li>Iterates through the <code>verts</code> list, looking at three consecutive vertices (v1, v2, v3) at a time:</li>
+                        <li>If either segment (v1-v2 or v2-v3) is an arc (and arc handling is "Retain"), skips analysis for this triplet and moves to the next vertex.</li>
+                        <li>Otherwise (segments are straight or arcs were straightened), calculates angles (ang1, ang2) and distance (dist(v1, v3)).</li>
+                        <li>If segments are collinear (ang1 approx equal to ang2) OR if dist(v1, v3) <= <code>*distmax*</code> AND angle difference <= <code>*cidmax*</code> (compensating for crossing 0 degrees), removes the middle vertex (v2) from the <code>verts</code> list.</li>
+                        <li>If the vertex was not removed, advances the index to consider the next triplet.</li>
+                        <li>After checking all vertices, updates the vertex count (code 90) in the <code>front</code> data.</li>
+                        <li>Reconstructs the flat vertex data list (<code>10to42</code>) from the potentially modified <code>verts</code> list.</li>
+                        <li>Combines <code>front</code>, the new <code>10to42</code>, and the extrusion direction (last item) into a new entity data list.</li>
+                        <li>Creates a new LWPOLYLINE using <code>entmake</code> with the simplified data.</li>
+                        <li>Deletes the original polyline.</li>
+                        <li>If the UCS was changed, restores the previous UCS and clears the <code>ucschanged</code> flag.</li>
+                        <li>Moves to the next selected polyline.</li>
+                        <li>Ends the Undo block. Restores CMDECHO.</li>
+                    </ol>
+
+                    <h5>Outputs</h5>
+                    <ul>
+                        <li>Deletes the original selected LWPOLYLINE(s).</li>
+                        <li>Creates new LWPOLYLINE(s) in their place with fewer vertices, based on the specified distance, angle, and arc handling criteria.</li>
+                        <li>Returns <code>nil</code> (suppressed by <code>(princ)</code>).</li>
+                    </ul>
+                </div>
+
+                <div id="cmd-ptl" class="command-section">
+                    <h2>C:PTL</h2>
+                    <p><strong>File:</strong> <code>CIVIL - Plot Levels.lsp</code></p>
+                    <p><strong>Description:</strong> Selects a reference text level, adds an increment, and updates a target text level. Similar to C:RDL but formats the output level to 2 decimal places.</p>
+
+                     <h5>Inputs</h5>
+                    <table class="table table-sm table-bordered variable-table">
+                        <thead><tr><th>Type</th><th>Name/Prompt</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td>User Prompt</td><td><code>Introduce the increment in mm <...>:</code></td><td>Asks the user to enter an integer increment in millimeters. Remembers the previous increment (<code>prev_increment</code>) as a default.</td></tr>
+                            <tr><td>User Selection</td><td><code>Select reference text level (or press Escape to exit):</code></td><td>Asks the user to select a single TEXT entity to read the level from. Loop continues until a valid TEXT entity is selected or Esc is pressed.</td></tr>
+                            <tr><td>User Selection</td><td><code>Select text to modify (or press Escape to exit):</code></td><td>Asks the user to select a single TEXT entity to write the modified level to. Loop continues until a valid TEXT entity is selected or Esc is pressed.</td></tr>
+                            <tr><td>Local Variable</td><td><code>*error*</code></td><td>Custom error handling function. Resets OSMODE and CMDECHO.</td></tr>
+                            <tr><td>Local Variable</td><td><code>oldosmode</code></td><td>Stores the original OSMODE setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>oldcmdecho</code></td><td>Stores the original CMDECHO setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>msg</code></td><td>Stores the prompt string for the increment input.</td></tr>
+                            <tr><td>Local Variable</td><td><code>increment</code></td><td>Stores the increment value in millimeters entered by the user (integer).</td></tr>
+                            <tr><td>Local Variable</td><td><code>a</code></td><td>Loop control variable for the main infinite loop (exited via Esc/error).</td></tr>
+                            <tr><td>Local Variable</td><td><code>ent</code></td><td>Stores the entity name list returned by <code>entsel</code> for the reference text.</td></tr>
+                            <tr><td>Local Variable</td><td><code>entList</code></td><td>Stores the entity data list of the reference text object.</td></tr>
+                            <tr><td>Local Variable</td><td><code>txt_level</code></td><td>Stores the string content of the reference text, later modified to hold the new level string for the target.</td></tr>
+                            <tr><td>Local Variable</td><td><code>level</code></td><td>Stores the numerical level value extracted from the reference text, later updated with the increment.</td></tr>
+                            <tr><td>Local Variable</td><td><code>destiny_ent</code></td><td>Stores the entity name list returned by <code>entsel</code> for the target text.</td></tr>
+                            <tr><td>Local Variable</td><td><code>destiny_entList</code></td><td>Stores the entity data list of the target text object.</td></tr>
+                             <tr><td>Global Variable (Implicit)</td><td><code>prev_increment</code></td><td>Stores the last used increment value (integer, mm) across command calls (initialized to 0 if nil).</td></tr>
+                       </tbody>
+                    </table>
+
+                    <h5>Processing</h5>
+                    <ol>
+                        <li>Saves current OSMODE and CMDECHO, then sets them to 0.</li>
+                        <li>Prompts the user for an increment in millimeters, using the previously entered value (if any) as a default. Stores the value in <code>increment</code> and updates <code>prev_increment</code>.</li>
+                        <li>Enters an infinite loop (exited via Esc/error).</li>
+                        <li>Prompts the user to select a reference text entity. Validates that it is a TEXT object.</li>
+                        <li>Extracts the text string content (DXF code 1).</li>
+                        <li>Checks if the text starts with "FFL" or "%%U". Extracts the numerical part (substring after prefix) and converts it to a real number (<code>level</code>).</li>
+                        <li>Calculates the new level: <code>level = level + (increment * 0.001)</code> (converts mm increment to meters).</li>
+                        <li>Prints the original and new levels to the command line.</li>
+                        <li>Formats the new level into a string prefixed with "%%U" and rounded to 2 decimal places.</li>
+                        <li>Prompts the user to select a target text entity. Validates that it is a TEXT object.</li>
+                        <li>Updates the target text entity's content (DXF code 1) with the new formatted level string using <code>entmod</code>.</li>
+                        <li>Applies SETBYLAYER command to the modified target text entity.</li>
+                        <li>Repeats the loop.</li>
+                        <li>(On exit/error) Restores original OSMODE and CMDECHO.</li>
+                    </ol>
+
+                    <h5>Outputs</h5>
+                    <ul>
+                        <li>Modifies the content of the selected target TEXT entity to reflect the incremented level value, formatted as "%%U" followed by the number rounded to 2 decimal places (e.g., "%%U123.79").</li>
+                        <li>Prints the original level (extracted number) and the calculated new level (number) to the command line during processing.</li>
+                        <li>Applies SETBYLAYER to the modified text.</li>
+                        <li>Returns <code>nil</code> (suppressed by <code>(princ)</code>).</li>
+                    </ul>
+                </div>
+
+                <div id="cmd-rdl" class="command-section">
+                    <h2>C:RDL</h2>
+                    <p><strong>File:</strong> <code>CIVIL - Road Levels.lsp</code></p>
+                    <p><strong>Description:</strong> Selects a reference text level, adds an increment, and updates a target text level. Similar to C:PTL but formats the output level to 3 decimal places.</p>
+
+                     <h5>Inputs</h5>
+                    <table class="table table-sm table-bordered variable-table">
+                        <thead><tr><th>Type</th><th>Name/Prompt</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td>User Prompt</td><td><code>Introduce the increment in mm <...>:</code></td><td>Asks the user to enter an integer increment in millimeters. Remembers the previous increment (<code>prev_increment</code>) as a default.</td></tr>
+                            <tr><td>User Selection</td><td><code>Select reference text level (or press Escape to exit):</code></td><td>Asks the user to select a single TEXT entity to read the level from. Loop continues until a valid TEXT entity is selected or Esc is pressed.</td></tr>
+                            <tr><td>User Selection</td><td><code>Select text to modify (or press Escape to exit):</code></td><td>Asks the user to select a single TEXT entity to write the modified level to. Loop continues until a valid TEXT entity is selected or Esc is pressed.</td></tr>
+                            <tr><td>Local Variable</td><td><code>*error*</code></td><td>Custom error handling function. Resets OSMODE and CMDECHO.</td></tr>
+                            <tr><td>Local Variable</td><td><code>oldosmode</code></td><td>Stores the original OSMODE setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>oldcmdecho</code></td><td>Stores the original CMDECHO setting.</td></tr>
+                            <tr><td>Local Variable</td><td><code>msg</code></td><td>Stores the prompt string for the increment input.</td></tr>
+                            <tr><td>Local Variable</td><td><code>increment</code></td><td>Stores the increment value in millimeters entered by the user (integer).</td></tr>
+                            <tr><td>Local Variable</td><td><code>a</code></td><td>Loop control variable for the main infinite loop (exited via Esc/error).</td></tr>
+                            <tr><td>Local Variable</td><td><code>ent</code></td><td>Stores the entity name list returned by <code>entsel</code> for the reference text.</td></tr>
+                            <tr><td>Local Variable</td><td><code>entList</code></td><td>Stores the entity data list of the reference text object.</td></tr>
+                            <tr><td>Local Variable</td><td><code>txt_level</code></td><td>Stores the string content of the reference text, later modified to hold the new level string for the target.</td></tr>
+                            <tr><td>Local Variable</td><td><code>level</code></td><td>Stores the numerical level value extracted from the reference text, later updated with the increment.</td></tr>
+                            <tr><td>Local Variable</td><td><code>destiny_ent</code></td><td>Stores the entity name list returned by <code>entsel</code> for the target text.</td></tr>
+                            <tr><td>Local Variable</td><td><code>destiny_entList</code></td><td>Stores the entity data list of the target text object.</td></tr>
+                             <tr><td>Global Variable (Implicit)</td><td><code>prev_increment</code></td><td>Stores the last used increment value (integer, mm) across command calls (initialized to 0 if nil).</td></tr>
+                       </tbody>
+                    </table>
+
+                    <h5>Processing</h5>
+                    <ol>
+                        <li>Saves current OSMODE and CMDECHO, then sets them to 0.</li>
+                        <li>Prompts the user for an increment in millimeters, using the previously entered value (if any) as a default. Stores the value in <code>increment</code> and updates <code>prev_increment</code>.</li>
+                        <li>Enters an infinite loop (exited via Esc/error).</li>
+                        <li>Prompts the user to select a reference text entity. Validates that it is a TEXT object.</li>
+                        <li>Extracts the text string content (DXF code 1).</li>
+                        <li>Checks if the text starts with "FFL" or "%%U". Extracts the numerical part (substring after prefix) and converts it to a real number (<code>level</code>).</li>
+                        <li>Calculates the new level: <code>level = level + (increment * 0.001)</code> (converts mm increment to meters).</li>
+                        <li>Prints the original and new levels to the command line.</li>
+                        <li>Formats the new level into a string prefixed with "%%U" and rounded to 3 decimal places.</li>
+                        <li>Prompts the user to select a target text entity. Validates that it is a TEXT object.</li>
+                        <li>Updates the target text entity's content (DXF code 1) with the new formatted level string using <code>entmod</code>.</li>
+                        <li>Applies SETBYLAYER command to the modified target text entity.</li>
+                        <li>Repeats the loop.</li>
+                        <li>(On exit/error) Restores original OSMODE and CMDECHO.</li>
+                    </ol>
+
+                    <h5>Outputs</h5>
+                    <ul>
+                        <li>Modifies the content of the selected target TEXT entity to reflect the incremented level value, formatted as "%%U" followed by the number rounded to 3 decimal places (e.g., "%%U123.789").</li>
+                        <li>Prints the original level (extracted number) and the calculated new level (number) to the command line during processing.</li>
+                        <li>Applies SETBYLAYER to the modified text.</li>
+                        <li>Returns <code>nil</code> (suppressed by <code>(princ)</code>).</li>
+                    </ul>
+                </div>
+
+                <!-- End Command Sections -->
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('.command-link');
+            const sections = document.querySelectorAll('.command-section');
+            const firstSection = document.querySelector('.command-section'); // Select the first command section
+
+            // Function to show a section
+            function showSection(targetId) {
+                sections.forEach(section => {
+                    if (section.id === targetId) {
+                        section.classList.add('active');
+                    } else {
+                        section.classList.remove('active');
+                    }
+                });
+                // Update active link state
+                links.forEach(link => {
+                     if (link.dataset.target === targetId) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }
+
+            // Show the first command section by default
+            if (firstSection) {
+                 showSection(firstSection.id);
+            }
+
+
+            // Add click listeners to links
+            links.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault(); // Prevent default anchor behavior
+                    const targetId = this.dataset.target;
+                    showSection(targetId);
+                     // Optionally update URL hash
+                    // window.location.hash = '#' + targetId;
+                });
+            });
+
+             // Optional: Handle hash change for direct linking (if needed)
+            // function handleHashChange() {
+            //     const hash = window.location.hash.substring(1);
+            //     if (hash) {
+            //         showSection(hash);
+            //     } else if (firstSection) {
+            //          showSection(firstSection.id); // Show first if no hash
+            //     }
+            // }
+            // window.addEventListener('hashchange', handleHashChange);
+            // handleHashChange(); // Initial check
+        });
+    </script>
+</body>
+</html>
